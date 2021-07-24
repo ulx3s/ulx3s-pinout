@@ -54,7 +54,7 @@ panel_info = content.add(
 graphic = panel_main.add(Group(1, 1))
 
 # Add and embed an image
-graphic.add(Image("ulx3s.png", width=1372, height=742, embed=True))
+graphic.add(Image("./ulx3s.png", width=1372, height=742, embed=True))
 
 # Create a single pin label
 graphic.add(
