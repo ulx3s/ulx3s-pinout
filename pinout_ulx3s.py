@@ -6,13 +6,14 @@
 #
 ###########################################
 
-from pinout.core import Group, Image
+from pinout.core import Group
 from pinout.components.layout import Diagram, Panel
 from pinout.components.pinlabel import PinLabelGroup, PinLabel
 from pinout.components.text import TextBlock
 from pinout.components import leaderline as lline
 from pinout.components.legend import Legend
 
+from custom_components import PNG_from_web
 
 # Import data for the diagram
 import data
@@ -54,7 +55,10 @@ panel_info = content.add(
 graphic = panel_main.add(Group(1, 1))
 
 # Add and embed an image
-graphic.add(Image("./ulx3s.png", width=1372, height=742, embed=True))
+graphic.add(PNG_from_web("https://raw.githubusercontent.com/ulx3s/ulx3s-pinout/main/ulx3s.png", width=1372, height=742, embed=True))
+
+# This works too(!). Changing 'blob' to 'raw' matches the 'download' button url.
+#graphic.add(PNG_from_web("https://github.com/ulx3s/ulx3s-pinout/raw/main/ulx3s.png", width=1372, height=742, embed=True))
 
 # Create a single pin label
 graphic.add(
