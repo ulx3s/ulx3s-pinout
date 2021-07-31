@@ -6,7 +6,7 @@ WARNING - under development, incomplete
 
 ## Installation
 
-To create a new [diagram.svg](./diagram.svg) file, [pinout](https://pinout.readthedocs.io/) needs to be installed.
+To create a new [pinout_ulx3s.svg](./pinout_ulx3s.svg) file, [pinout](https://pinout.readthedocs.io/) needs to be installed.
 
 ## Files
 
