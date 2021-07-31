@@ -16,6 +16,10 @@ To create a new [pinout_ulx3s.svg](./pinout_ulx3s.svg) file, [pinout](https://pi
 - [pinout-update.sh](./pinout-update.sh) watches above files and regenerates the [pinout_ulx3s.svg](./pinout_ulx3s.svg) file.
 - [pinout_ulx3s.svg](./pinout_ulx3s.svg) the SVG file; deleted and recreated when above files are changed.
 
+## Development Aid
+
+To continuously scan files for changes and automatically regenerate the SVG, run the [pinout-update.sh](./pinout-update.sh)script.
+
 ## References
 
 - [ulx3s_v20.lpf](https://github.com/emard/ulx3s/blob/master/doc/constraints/ulx3s_v20.lpf) - Constraint file.
