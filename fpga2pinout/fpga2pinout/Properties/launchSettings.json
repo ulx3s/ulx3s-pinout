@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "fpga2pinout": {
+      "commandName": "Project",
+      "commandLineArgs": "c:\\workspace\\ulx3s\\doc\\constraints\\ulx3s_v20.lpf"
+    }
+  }
+}
