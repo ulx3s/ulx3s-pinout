@@ -5,3 +5,8 @@
 /.vs
 /__pycache__
 /archive
+/fpga2pinout/fpga2pinout/bin/Debug/netcoreapp3.1
+/fpga2pinout/fpga2pinout/obj
+/png2base64/bin/Debug/netcoreapp3.1
+/png2base64/obj
+/fpga2pinout/.vs/fpga2pinout
