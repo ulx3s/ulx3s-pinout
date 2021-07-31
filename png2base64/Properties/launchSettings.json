@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "png2base64": {
+      "commandName": "Project",
+      "commandLineArgs": "C:\\workspace\\pinout-test\\demo.gif"
+    }
+  }
+}
