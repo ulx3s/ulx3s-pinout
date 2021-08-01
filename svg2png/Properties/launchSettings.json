@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "svg2png": {
+      "commandName": "Project",
+      "commandLineArgs": "C:\\workspace\\ulx3s-pinout\\pinout_ulx3s.svg"
+    }
+  }
+}
