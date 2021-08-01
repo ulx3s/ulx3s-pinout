@@ -2,7 +2,7 @@
   "profiles": {
     "png2base64": {
       "commandName": "Project",
-      "commandLineArgs": "C:\\workspace\\pinout-test\\demo.gif"
+      "commandLineArgs": "C:\\workspace\\ulx3s-pinout\\demo.gif"
     }
   }
 }
