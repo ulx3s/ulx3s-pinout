@@ -5,7 +5,9 @@ text {
 }
 
 .pinlabel__leader{
-    stroke-width: 2;
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
     fill: none;
 }
 
@@ -26,6 +28,54 @@ text {
 
 .gpsingle .swatch__body {
     fill: rgb(34 173 0);
+}
+
+.gnsingle .pinlabel__body {
+    fill: rgb(0 140 173);
+}
+
+.gnsingle .pinlabel__leader {
+    stroke: rgb(0 140 173);
+}
+
+.gnsingle .swatch__body {
+    fill: rgb(0 140 173);
+}
+
+.gpdiff .pinlabel__body {
+    fill: rgb(0 120 0);
+}
+
+.gpdiff .pinlabel__leader {
+    stroke: rgb(0 120 0);
+}
+
+.gpdiff .swatch__body {
+    fill: rgb(0 120 0);
+}
+
+.gndiff .pinlabel__body {
+    fill: rgb(0 90 160);
+}
+
+.gndiff .pinlabel__leader {
+    stroke: rgb(0 90 160);
+}
+
+.gndiff .swatch__body {
+    fill: rgb(0 90 160);
+}
+
+.site .pinlabel__body {
+    fill: rgb(70 70 70);
+}
+
+.site .pinlabel__leader {
+    stroke: rgb(70 70 70);
+}
+
+.site .swatch__body {
+    fill: rgb(70 70 70);
 }
 
 .pwr .pinlabel__body{
@@ -117,4 +167,40 @@ text {
 
 .panel--info .panel__inner{
     fill: #f4f4f4;
+}
+
+.alias .pinlabel__body {
+    fill: rgb(120, 72, 168);
+}
+
+.alias .pinlabel__leader {
+    stroke: rgb(120, 72, 168);
+}
+
+.alias .swatch__body {
+    fill: rgb(120, 72, 168);
+}
+
+.connector .pinlabel__body {
+    fill: rgb(75, 94, 120);
+}
+
+.connector .pinlabel__leader {
+    stroke: rgb(75, 94, 120);
+}
+
+.connector .swatch__body {
+    fill: rgb(75, 94, 120);
+}
+
+.meta .pinlabel__body {
+    fill: rgb(95, 95, 95);
+}
+
+.meta .pinlabel__leader {
+    stroke: rgb(95, 95, 95);
+}
+
+.meta .swatch__body {
+    fill: rgb(95, 95, 95);
 }

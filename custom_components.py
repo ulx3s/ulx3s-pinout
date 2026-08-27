@@ -14,7 +14,7 @@ class PNG_from_web(SvgShape):
 
     def render(self):
         """Linking or embed a PNG formatted image from a web url."""
-        
+
         tplt = templates.get("image.svg")
         if self.embed:
 
