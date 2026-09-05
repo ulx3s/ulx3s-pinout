@@ -1,73 +1,92 @@
-# ULX3S Pinout
+# ULX Pinout Generator
 
-Generated pinout diagram for the ULX3S FPGA development board.
+Generate annotated pinout diagrams for ULX FPGA boards from board-specific
+constraint files, connector maps, and board images.
 
-The diagram overlays connector labels on a ULX3S board image. The current
-pinout data covers all 40 physical pins on both GPIO headers:
+The project currently supports:
 
-- J1: GP/GN 0 through 13, power, and ground
-- J2: GP/GN 14 through 27, power, ground, 5V input, and 5V output
 
-GPIO labels include the physical connector pin number, ULX3S GP/GN signal
-name, and ECP5 FPGA package site.
+Samples:
+
+| Output samples |
+|  :---: |
+| ULX3S J1/J2 GPIO headers  |
+| <a href="./output/ulx3s/pinout_ulx3s.svg"><img src="./output/ulx3s/pinout_ulx3s.svg" alt="ULX3S J1/J2 GPIO pinout" width="200"></a> |  
+| ULX4M-LD on the <br /> Waveshare CM4-IO-BASE-B <br> Raspberry Pi 40-pin header |
+| <a href="./output/ulx4m-ld/pinout_ulx4m_ld.svg"><img src="./output/ulx4m-ld/pinout_ulx4m_ld.svg" alt="ULX4M-LD Waveshare CM4-IO-BASE-B pinout" width="200"></a>  |
+
+The top-level scripts are board-independent. Board-specific connector maps,
+LPF interpretation, generated data, image assets, and layout geometry live
+under `boards/<board>/`.
 
 > WARNING: This project is under development. Always verify connector power,
-> FPGA site, and board-revision-specific details against the ULX3S schematic,
-> manual, and constraint file before connecting external hardware.
+> FPGA sites, board-revision details, shared resources, and connector
+> orientation against the board schematic and the selected constraint file
+> before connecting external hardware.
 
-![ULX3S pinout](./pinout_ulx3s.svg)
+## Repository layout
 
-## Quick Start
-
-Once installed and configured (see below) - refresh:
-
-### Generate Data
-
-```bash
-python3 generate-data-from-lpf.py  ./constraints/ulx3s_v316.lpf  -o data.py  --include aliases
+```text
+ulx3s-pinout/
+|-- .github/
+|   `-- workflows/
+|       `-- test-pinout.yml
+|-- generate-pinout.py
+|-- generate-data-from-lpf.py
+|-- pinout_common.py
+|-- styles.css
+|-- scripts/
+|   `-- test-pinout.sh
+|-- boards/
+|   |-- ulx3s/
+|   |   |-- data.py
+|   |   |-- generator.py
+|   |   |-- layout.py
+|   |   |-- ulx3s.png
+|   |   `-- constraints/
+|   |       |-- ulx3s_v17patch.lpf
+|   |       |-- ulx3s_v20.lpf
+|   |       |-- ulx3s_v314.lpf
+|   |       `-- ulx3s_v316.lpf
+|   `-- ulx4m-ld/
+|       |-- data.py
+|       |-- generator.py
+|       |-- layout.py
+|       |-- cm4-io-base-b-3_3.jpg
+|       `-- constraints/
+|           |-- fpga_ulx4m_ld.lpf
+|           |-- fpga_ulx4m_ld_blinky.lpf
+|           `-- fpga_ulx4m_ld_v002.lpf
+|-- output/
+|   |-- ulx3s/
+|   `-- ulx4m-ld/
+`-- build/
+    `-- pinout-tests/
 ```
 
-### Generate SVG Image
-
-```bash
-python3 -m pinout.manager  --export pinout_ulx3s.py pinout_ulx3s.svg  --overwrite
-```
-
-## Header numbering convention
-
-The physical J1 and J2 pin numbers shown by this project follow the ULX3S
-constraint-file convention for female angled 90-degree headers mounted on the
-top of the board.
-
-The ULX3S constraint file describes the GPIO connectors as:
-
-- female angled 90-degree headers on the top, or
-- male vertical headers on the bottom / flat cable
-
-If using a male vertical header, confirm the physical orientation before
-wiring. Do not assume that the apparent left/right or odd/even positions are
-the same when viewed from the opposite side of the PCB.
+`generator.py` is intentionally board-specific. It keeps ULX3S GP/GN parsing
+and ULX4M Raspberry Pi/CM4 mapping out of the shared top-level dispatcher.
 
 ## Requirements
-
-The main diagram generator is Python based and uses the
-[pinout](https://pinout.readthedocs.io/) package.
 
 For Ubuntu or WSL:
 
 ```bash
 sudo apt update
-sudo apt install python3-pip inotify-tools
+sudo apt install python3-pip
 
-python3 -m pip install --user --upgrade pinout cairosvg
+python3 -m pip install --user --upgrade pinout cairosvg pillow
 ```
 
-`inotify-tools` is only required for the automatic file-watching development
-script. It is not required for one-shot SVG generation.
+The dependencies are used as follows:
 
-The current generator uses the local `ulx3s.png` board image and embeds it in
-the generated SVG. Network access is therefore not required to render the
-board image after the repository has been cloned.
+- `pinout` builds the diagram object model and exports SVG.
+- `cairosvg` is required for PNG, PDF, and PS output.
+- `Pillow` is used for image validation and for EXIF-normalizing the Waveshare
+  CM4 carrier photograph before applying calibrated header coordinates.
+
+Run generation commands from the repository root because board definitions
+refer to repository-relative files.
 
 ## Clone the repository
 
@@ -77,318 +96,355 @@ git clone https://github.com/ulx3s/ulx3s-pinout.git
 cd ulx3s-pinout
 ```
 
-Run all generation commands from the repository root. Several source files are
-referenced by relative path.
+## Quick start
 
-## Generate the SVG
+### ULX3S
 
-For a normal one-shot build:
+Regenerate the default ULX3S data from the v3.1.6/v3.1.7 LPF and include the
+recognized aliases used by the committed pinout:
 
 ```bash
-python3 -m pinout.manager \
-    --export pinout_ulx3s.py pinout_ulx3s.svg \
-    --overwrite
+./generate-data-from-lpf.py ulx3s \
+    --include aliases \
+    --markdown output/ulx3s/PIN-MAPPING.md
 ```
 
-A successful build creates or replaces:
+Generate the SVG:
+
+```bash
+./generate-pinout.py ulx3s
+```
+
+Generate the PNG:
+
+```bash
+./generate-pinout.py ulx3s --format png
+```
+
+Default outputs:
 
 ```text
-pinout_ulx3s.svg
+output/ulx3s/pinout_ulx3s.svg
+output/ulx3s/pinout_ulx3s.png
+output/ulx3s/PIN-MAPPING.md
 ```
 
-Check that it exists:
+To generate ULX3S data from another checked-in LPF:
 
 ```bash
-ls -lh pinout_ulx3s.svg
+./generate-data-from-lpf.py ulx3s \
+    boards/ulx3s/constraints/ulx3s_v20.lpf \
+    --include aliases \
+    --markdown output/ulx3s/PIN-MAPPING-v20.md
 ```
 
-The SVG can be opened directly in a modern web browser.
+Show all ULX3S-specific generator options:
 
-The `.py` suffix in `pinout_ulx3s.py` is required. Passing only
-`pinout_ulx3s` can cause Python module loading to fail with an error similar to:
+```bash
+./generate-data-from-lpf.py ulx3s --help
+```
+
+### ULX4M-LD
+
+Regenerate the ULX4M-LD data from the default LPF:
+
+```bash
+./generate-data-from-lpf.py ulx4m-ld \
+    --markdown output/ulx4m-ld/PIN-MAPPING.md
+```
+
+Generate the SVG:
+
+```bash
+./generate-pinout.py ulx4m-ld
+```
+
+Generate the PNG:
+
+```bash
+./generate-pinout.py ulx4m-ld --format png
+```
+
+Default outputs:
 
 ```text
-AttributeError: 'NoneType' object has no attribute 'loader'
+output/ulx4m-ld/pinout_ulx4m_ld.svg
+output/ulx4m-ld/pinout_ulx4m_ld.png
+output/ulx4m-ld/PIN-MAPPING.md
 ```
 
-## Automatic regeneration while editing
+The ULX4M data generator keeps two distinct layers of information:
 
-`pinout-update.sh` is a development convenience that waits for source changes
-and regenerates `pinout_ulx3s.svg`.
+- fixed Raspberry Pi header -> CM4 -> ULX4M-LD FPGA-site mapping
+- current LPF use of those FPGA sites
 
-Make it executable once if necessary:
+That distinction is important because a header-connected FPGA site can also be
+consumed by another design resource. With the current `fpga_ulx4m_ld.lpf`,
+Raspberry Pi header pin 5 / GPIO3 / FPGA site P17 is used by
+`ddram_a[12]`, so the diagram marks it as a critical current LPF use.
+
+## Generate all boards
 
 ```bash
-chmod +x pinout-update.sh
+./generate-pinout.py all
 ```
 
-Then run:
+The board data must already be generated. `generate-pinout.py` renders the
+existing `boards/<board>/data.py`; it does not silently choose or regenerate a
+constraint-file configuration.
 
-```bash
-./pinout-update.sh
-```
+## Output formats
 
-You can also run it without relying on the executable bit:
-
-```bash
-bash ./pinout-update.sh
-```
-
-The script requires `inotifywait`, provided by the Ubuntu/WSL
-`inotify-tools` package.
-
-If it is not installed:
-
-```bash
-sudo apt install inotify-tools
-```
-
-The watcher currently monitors:
+Supported formats are:
 
 ```text
-styles.css
-pinout_ulx3s.py
-data.py
-```
-
-If `ulx3s.png` is changed, run the one-shot generation command manually unless
-the watcher is also updated to monitor that file.
-
-Stop the watcher with `Ctrl-C`.
-
-## Editing the pinout
-
-Most pinout changes only require editing one of three files.
-
-### Change a pin name, connector pin, or FPGA site
-
-Edit:
-
-```text
-data.py
-```
-
-This is the pinout data source. J1 and J2 entries contain the physical header
-pin number, GP/GN signal name, FPGA site, power label, or ground label.
-
-After editing, regenerate the SVG.
-
-### Change where labels or leader lines are placed
-
-Edit:
-
-```text
-pinout_ulx3s.py
-```
-
-This file defines the diagram dimensions, board-image placement, J1/J2 label
-group locations, label width/height, spacing, direction, and other rendering
-geometry.
-
-### Change pin-label pill appearance
-
-The pill corner radius and border are parameterized in `pinout_ulx3s.py`:
-
-```python
-PIN_LABEL_CORNER_RADIUS = 5
-PIN_LABEL_BORDER_COLOR = "rgb(54, 54, 54)"
-PIN_LABEL_BORDER_WIDTH = 1.5
-```
-
-`PIN_LABEL_CORNER_RADIUS` controls the SVG rounded-rectangle corner radius in
-pixels. Increase it for rounder pills or decrease it for squarer labels. The
-configured label height is 20 pixels, so values around 4 through 7 provide
-moderate rounding without turning short labels into fully rounded capsules.
-
-`PIN_LABEL_BORDER_COLOR` accepts any SVG/CSS color value, for example:
-
-```python
-PIN_LABEL_BORDER_COLOR = "#363636"
-PIN_LABEL_BORDER_COLOR = "rgb(54, 54, 54)"
-```
-
-`PIN_LABEL_BORDER_WIDTH` is the border stroke thickness in SVG pixels:
-
-```python
-PIN_LABEL_BORDER_WIDTH = 1.5
-```
-
-The renderer injects these Python values as an inline SVG style after
-`styles.css`. This keeps the border parameters in the same source file as the
-label geometry and ensures they override any generic `.pinlabel__body` border
-setting in the stylesheet.
-
-Every generated J1/J2 label also receives:
-
-```python
-body.setdefault("corner_radius", PIN_LABEL_CORNER_RADIUS)
-```
-
-so the same corner-radius setting applies consistently to physical pin
-numbers, GP/GN names, FPGA sites, user labels, aliases, connector labels, and
-LPF metadata labels.
-
-### Change pin-label box widths
-
-J1/J2 label boxes are sized by semantic type in `pinout_ulx3s.py`. This keeps
-short labels compact while reserving more room for aliases and metadata.
-
-The current width parameters are:
-
-```python
-PIN_NUMBER_LABEL_WIDTH = 40
-GPIO_SIGNAL_LABEL_WIDTH = 58
-FPGA_SITE_LABEL_WIDTH = 54
-POWER_LABEL_WIDTH = 88
-GROUND_LABEL_WIDTH = 54
-USER_LABEL_WIDTH = 96
-ALIAS_LABEL_WIDTH = 116
-CONNECTOR_LABEL_WIDTH = 76
-METADATA_LABEL_WIDTH = 132
-ANALOG_LABEL_WIDTH = 76
-PWM_LABEL_WIDTH = 72
-TOUCH_LABEL_WIDTH = 76
-DEFAULT_LABEL_WIDTH = 96
-```
-
-All J1/J2 boxes share:
-
-```python
-PIN_LABEL_HEIGHT = 20
-```
-
-The renderer chooses widths automatically. Physical connector pin numbers are
-recognized by numeric content first, so pins such as `2`, `19`, and `40` use
-`PIN_NUMBER_LABEL_WIDTH` even though their functional tag may be `pwr`, `gnd`,
-or `gpio`.
-
-Non-numeric labels use their CSS/data tag:
-
-```python
-LABEL_WIDTH_BY_TAG = {
-    "gpsingle": GPIO_SIGNAL_LABEL_WIDTH,
-    "gnsingle": GPIO_SIGNAL_LABEL_WIDTH,
-    "gpdiff": GPIO_SIGNAL_LABEL_WIDTH,
-    "gndiff": GPIO_SIGNAL_LABEL_WIDTH,
-    "site": FPGA_SITE_LABEL_WIDTH,
-    "pwr": POWER_LABEL_WIDTH,
-    "gnd": GROUND_LABEL_WIDTH,
-    "comms": USER_LABEL_WIDTH,
-    "alias": ALIAS_LABEL_WIDTH,
-    "connector": CONNECTOR_LABEL_WIDTH,
-    "meta": METADATA_LABEL_WIDTH,
-    ...
-}
+svg
+png
+pdf
+ps
 ```
 
 Examples:
 
-```text
-"28"          -> PIN_NUMBER_LABEL_WIDTH
-"GP23"        -> GPIO_SIGNAL_LABEL_WIDTH
-"B17"         -> FPGA_SITE_LABEL_WIDTH
-"2.5/3.3V"    -> POWER_LABEL_WIDTH
-"UART Rx"     -> USER_LABEL_WIDTH
-"wifi_gpio36" -> ALIAS_LABEL_WIDTH
-"J2_27+"      -> CONNECTOR_LABEL_WIDTH
-"PULL=UP"     -> METADATA_LABEL_WIDTH
+```bash
+./generate-pinout.py ulx3s --format svg
+./generate-pinout.py ulx3s --format png
+./generate-pinout.py ulx4m-ld --format pdf
+./generate-pinout.py ulx4m-ld --format ps
 ```
 
-The width policy is a rendering concern, so generated `data.py` remains simple
-and does not contain layout widths. `labels_with_dimensions()` adds the
-per-label body settings when `pinout_ulx3s.py` builds each `PinLabelGroup`.
+For a custom filename when generating one board:
 
-If a new label tag is added, either add it to `LABEL_WIDTH_BY_TAG` or let it
-use `DEFAULT_LABEL_WIDTH`.
-
-Wider labels increase the total horizontal extent of rows containing several
-labels. If those rows approach or cross the outer frame, increase
-`EXTRA_LABEL_SPACE_PER_SIDE` as well.
-
-### Increase space for additional user labels
-
-The black outer frame is created by the top-level `Panel` in
-`pinout_ulx3s.py`. The related frame and centering dimensions are derived from
-layout variables near the top of that file rather than being repeated as
-hard-coded values.
-
-For normal editing, the main setting is:
-
-```python
-EXTRA_LABEL_SPACE_PER_SIDE = 100
+```bash
+./generate-pinout.py ulx4m-ld \
+    --format svg \
+    --output output/ulx4m-ld/custom.svg
 ```
 
-This value is the additional horizontal space, in SVG pixels, reserved on
-each side of the original layout. The diagram width, content-panel width,
-board position, and legend position are derived automatically:
+By default, generation overwrites the selected output file. Use
+`--no-overwrite` to retain the existing file and let `pinout.manager` choose a
+unique output name.
 
-```python
-DIAGRAM_WIDTH = BASE_DIAGRAM_WIDTH + (2 * EXTRA_LABEL_SPACE_PER_SIDE)
-CONTENT_WIDTH = BASE_CONTENT_WIDTH + (2 * EXTRA_LABEL_SPACE_PER_SIDE)
-GRAPHIC_X = BASE_GRAPHIC_X + EXTRA_LABEL_SPACE_PER_SIDE + BOARD_X_ADJUST
-LEGEND_X = BASE_LEGEND_X + EXTRA_LABEL_SPACE_PER_SIDE
+## Direct pinout.manager use
+
+Each board `layout.py` exposes a module-level object named `diagram`, so the
+original `pinout.manager` workflow remains available.
+
+ULX3S:
+
+```bash
+python3 -m pinout.manager \
+    --export boards/ulx3s/layout.py output/ulx3s/pinout_ulx3s.svg \
+    --overwrite
 ```
 
-For example, if user labels need 50 more pixels on both sides, change only:
+ULX4M-LD:
 
-```python
-EXTRA_LABEL_SPACE_PER_SIDE = 150
+```bash
+python3 -m pinout.manager \
+    --export boards/ulx4m-ld/layout.py output/ulx4m-ld/pinout_ulx4m_ld.svg \
+    --overwrite
 ```
 
-The output becomes 100 pixels wider in total and the ULX3S remains centered.
+The top-level `generate-pinout.py` is the preferred board-oriented front end.
 
-User labels are additional entries in a pin's list in `data.py`. For example,
-GP0 currently includes an extra UART label:
+## Script validation
 
-```python
-[
-    ("6", "gpio"),
-    ("GP0", "gpsingle"),
-    ("UART Rx", "comms"),
-    ("B11", "site"),
-],
+Run the same parser and rendering checks used by GitHub Actions locally:
+
+```bash
+./scripts/test-pinout.sh
 ```
 
-Each additional entry extends farther outward from the connector. Increase
-`EXTRA_LABEL_SPACE_PER_SIDE` when several labels are added on both J1 and J2.
-
-For an asymmetric layout, use:
-
-```python
-BOARD_X_ADJUST = 0
-```
-
-A positive value shifts the ULX3S and all pin labels to the right. A negative
-value shifts them to the left. This is useful when one side has substantially
-more or longer user labels than the other.
-
-The base values are also grouped near the top of `pinout_ulx3s.py`:
-
-```python
-BASE_DIAGRAM_WIDTH = 1600
-BASE_CONTENT_WIDTH = 1560
-BASE_GRAPHIC_X = 95
-BASE_LEGEND_X = 280
-```
-
-These normally do not need to change. They describe the original layout;
-`EXTRA_LABEL_SPACE_PER_SIDE` provides the normal user-editable margin.
-
-### Change colors, fonts, or visual styling
-
-Edit:
+The test script writes temporary results only below:
 
 ```text
-styles.css
+build/pinout-tests/
 ```
 
-Pin categories such as GP, GN, differential pairs, FPGA sites, power, ground,
-and GPIO get their visual appearance from this stylesheet.
+It validates:
 
-## Pin data organization
+- Python syntax for the root and board-specific Python files
+- board discovery and command-line help
+- rendering of ULX3S and ULX4M-LD as SVG and PNG
+- PNG readability and non-zero image dimensions
+- reproducibility of the committed default `data.py` files
+- Markdown mapping generation
+- every checked-in ULX3S constraint file
+- every checked-in ULX4M-LD constraint file
+- the ULX3S aliases path
+- ShellCheck for the test script when ShellCheck is available
+- that the test does not modify tracked repository files
 
-`data.py` separates the two physical rows of each 2x20 connector so that each
-header pin can be connected to its own label group.
+A successful run always contains these rendered images:
+
+```text
+build/pinout-tests/rendered/pinout_ulx3s.svg
+build/pinout-tests/rendered/pinout_ulx3s.png
+build/pinout-tests/rendered/pinout_ulx4m_ld.svg
+build/pinout-tests/rendered/pinout_ulx4m_ld.png
+```
+
+GitHub Actions runs the test suite on the configured Python matrix. Each matrix
+job uploads its rendered SVG/PNG images, generated Markdown/data files, and
+constraint-sweep outputs as a downloadable artifact.
+
+The workflow is:
+
+```text
+.github/workflows/test-pinout.yml
+```
+
+## Source and generated files
+
+The normal data flow is:
+
+```text
+ULX3S LPF ------------------+
+                            |
+                            v
+boards/ulx3s/generator.py -> boards/ulx3s/data.py
+                                      |
+boards/ulx3s/ulx3s.png ---------------+
+styles.css ----------------------------+--> boards/ulx3s/layout.py
+                                                   |
+                                                   v
+                                      output/ulx3s/pinout_ulx3s.*
+
+ULX4M-LD LPF --------------+
+                            |
+                            v
+boards/ulx4m-ld/generator.py -> boards/ulx4m-ld/data.py
+                                         |
+boards/ulx4m-ld/cm4-io-base-b-3_3.jpg ---+
+styles.css -------------------------------+--> boards/ulx4m-ld/layout.py
+                                                      |
+                                                      v
+                                  output/ulx4m-ld/pinout_ulx4m_ld.*
+```
+
+Treat the LPF files, board-specific generators, layout code, board images, and
+shared stylesheet as source. Regenerate `data.py` and diagrams rather than
+making permanent edits directly to generated SVG/PNG output.
+
+The board images are embedded in the generated SVG, so normal viewing of the
+SVG does not require network access.
+
+## Shared vs board-specific code
+
+### `generate-data-from-lpf.py`
+
+This is a board-neutral dispatcher. The first positional argument selects the
+board and the remaining options are passed to that board's generator.
+
+List supported boards:
+
+```bash
+./generate-data-from-lpf.py --list-boards
+```
+
+Examples:
+
+```bash
+./generate-data-from-lpf.py ulx3s --include aliases
+./generate-data-from-lpf.py ulx4m-ld
+```
+
+### `generate-pinout.py`
+
+This is the board-neutral renderer. It loads the selected board's `layout.py`
+and exports the requested format.
+
+List supported boards:
+
+```bash
+./generate-pinout.py --list-boards
+```
+
+### `pinout_common.py`
+
+Contains shared filesystem/module-loading helpers, image normalization, SVG
+escaping, and coordinate interpolation. It intentionally does not know ULX3S
+J1/J2 numbering or the ULX4M CM4 GPIO map.
+
+The filename uses an underscore so it can be imported as a normal Python
+module.
+
+### `styles.css`
+
+Contains styles shared by both diagrams. ULX4M-specific rules are scoped below
+`.ulx4m` so Raspberry Pi GPIO, alias, and active-LPF styling does not override
+the existing ULX3S pinout component classes.
+
+For compatibility with the PNG conversion path, use conventional comma
+separated `rgb()` values, for example:
+
+```css
+fill: rgb(34, 173, 0);
+```
+
+rather than CSS Color 4 space-separated syntax.
+
+### Board `generator.py`
+
+Each board generator owns the mapping rules that cannot safely be generalized.
+
+`boards/ulx3s/generator.py` owns:
+
+- GP/GN vector and scalar forms
+- J1/J2 physical connector templates
+- differential GP/GN classification
+- LPF aliases and optional metadata
+- vector/scalar consistency checks
+- generated Markdown pin mapping
+
+`boards/ulx4m-ld/generator.py` owns:
+
+- Raspberry Pi physical pin definitions
+- BCM GPIO aliases
+- CM4 GPIO to ECP5 site mapping
+- SD/JTAG/Ethernet shared-resource notes
+- current LPF `LOCATE COMP` matching
+- generated Markdown pin mapping
+
+### Board `layout.py`
+
+A board layout owns image placement and drawing geometry only. Both layouts
+expose `diagram` for compatibility with `pinout.manager`.
+
+For ULX4M-LD, four measured header endpoints are authoritative. The 20 header
+row centers are interpolated from those endpoints so the labels and leader
+lines stay aligned with the photographed connector pins.
+
+## ULX3S details
+
+### Header numbering convention
+
+The physical J1 and J2 pin numbers follow the ULX3S constraint-file convention
+for female angled 90-degree headers mounted on the top of the board.
+
+The ULX3S constraint files describe the GPIO connectors as either:
+
+- female angled 90-degree headers on the top, or
+- male vertical headers on the bottom / flat cable
+
+If using a male vertical header, confirm the physical orientation before
+wiring. Do not assume that apparent left/right or odd/even positions are the
+same when viewed from the opposite side of the PCB.
+
+The generated data validates that:
+
+```text
+J1 contains physical pins 1..40 exactly once
+J2 contains physical pins 1..40 exactly once
+GP0..GP27 appear exactly once
+GN0..GN27 appear exactly once
+```
+
+### ULX3S pin data organization
+
+`boards/ulx3s/data.py` separates the two physical rows of each 2x20 connector
+so each physical header pin can be connected to its own label group.
 
 The main connector data sets are:
 
@@ -399,9 +455,6 @@ right_header_even    J2 even-numbered physical pins
 right_header_odd     J2 odd-numbered physical pins
 ```
 
-Together, the J1 lists must contain physical pins 1 through 40 exactly once.
-The J2 lists must also contain physical pins 1 through 40 exactly once.
-
 The GPIO signal range is:
 
 ```text
@@ -409,79 +462,43 @@ J1: GP0..GP13 and GN0..GN13
 J2: GP14..GP27 and GN14..GN27
 ```
 
-When changing this data, verify the FPGA package sites against
-`ulx3s_v20.lpf` rather than inferring a site from neighboring pins.
+When changing or reviewing generated mappings, verify FPGA package sites
+against the selected LPF instead of inferring them from neighboring pins.
 
-## File and directory purpose
+### Generate ULX3S data from an LPF
 
-### Main generator files
+The ULX3S generator makes FPGA-site labels reproducible from an authoritative
+constraint file instead of maintaining those package sites by hand.
 
-| Path | Purpose |
-| --- | --- |
-| `README.md` | Project usage, generation, maintenance, and file-layout documentation. |
-| `data.py` | Pin-label data, legend entries, J1/J2 physical pin numbers, GP/GN names, power/ground labels, and FPGA package sites. This is the primary file to edit when changing pin assignments or label content. |
-| `pinout_ulx3s.py` | Main Python diagram definition. Loads `data.py`, embeds `ulx3s.png`, creates J1/J2 label groups, and defines their geometry. |
-| `styles.css` | SVG/CSS styling for label bodies, leader lines, text, legend entries, power, ground, GP/GN, differential pairs, and FPGA sites. |
-| `ulx3s.png` | Source board image used as the background of the generated pinout diagram. It is embedded into the SVG by `pinout_ulx3s.py`. |
-| `pinout_ulx3s.svg` | Primary generated output. This file is regenerated from the Python/data/CSS sources. Do not treat manual SVG edits as source changes. |
-| `pinout_ulx3s.png` | Rasterized pinout image/preview when a PNG form of the generated SVG is desired. |
-| `pinout-update.sh` | Linux/WSL development watcher. Uses `inotifywait` and regenerates `pinout_ulx3s.svg` when selected source files change. |
-| `generate-data-from-lpf.py` | Generates `data.py` from ULX3S LPF `gp`/`gn` FPGA site constraints, validates all 56 GPIO mappings, and preserves the connector/power/user-label structure maintained by the pinout project. |
-| `custom_components.py` | Legacy custom `PNG_from_web` component that downloaded and embedded an image from a URL. The current main generator uses `pinout.core.Image` with the local `ulx3s.png`, so this file is not required by the normal generation path. |
-| `.gitignore` | Git ignore rules for generated, temporary, or development-specific files. |
-| `ulx3s-pinout.sln` | Visual Studio solution for the C# helper utilities included in this repository. It is not required for the Python SVG-generation path. |
-
-### Helper utility directories
-
-The helper utilities are separate from the normal Python generation workflow.
-
-| Path | Purpose |
-| --- | --- |
-| `fpga2pinout/` | C# helper that reads an FPGA constraint file and extracts `LOCATE COMP ... SITE ...` mappings into an intermediate text form useful when preparing pin data. |
-| `svg2png/` | C# helper that uses SVG.NET to render an SVG file to a PNG file. |
-| `png2base64/` | Legacy C# Base64 helper. Its current implementation reads the input as text and writes a `.Base64` file. It is not needed by the current embedded-image workflow. |
-
-Each C# helper directory contains its own `Program.cs` and Visual Studio/MSBuild
-project file. These tools are optional and are not needed to build
-`pinout_ulx3s.svg`.
-
-## Generated versus source files
-
-The normal source-to-output relationship is:
-
-```text
-data.py -----------+
-styles.css --------+--> pinout_ulx3s.py --> pinout_ulx3s.svg
-ulx3s.png ----------+
-```
-
-Edit the source files and regenerate the SVG rather than making permanent
-changes directly to `pinout_ulx3s.svg`.
-
-Because the board PNG is embedded, the resulting SVG is self-contained for
-normal viewing.
-
-## Generate `data.py` from an ULX3S LPF
-
-`generate-data-from-lpf.py` makes the FPGA site labels reproducible from an
-authoritative ULX3S constraint file instead of maintaining those package sites
-by hand.
-
-Base pinout only:
+Base pinout:
 
 ```bash
-python3 generate-data-from-lpf.py \\
-    /path/to/ulx3s_v20.lpf \\
-    -o data.py
+./generate-data-from-lpf.py ulx3s \
+    boards/ulx3s/constraints/ulx3s_v316.lpf
 ```
 
-The base output contains the existing physical pin number, GP/GN name, optional
-project `USER_LABELS`, and FPGA package site. LPF aliases and metadata are
-opt-in so the normal diagram does not become excessively wide.
+Committed/default pinout with aliases:
 
-### Optional LPF labels
+```bash
+./generate-data-from-lpf.py ulx3s \
+    boards/ulx3s/constraints/ulx3s_v316.lpf \
+    --include aliases
+```
 
-Use `--include` with one or more comma-separated fields:
+Write to a temporary data file instead of replacing the committed board data:
+
+```bash
+./generate-data-from-lpf.py ulx3s \
+    boards/ulx3s/constraints/ulx3s_v20.lpf \
+    -o build/ulx3s-v20-data.py
+```
+
+### Optional ULX3S LPF labels
+
+Use `--include` to add selected LPF-derived information to the generated pin
+labels.
+
+Available fields include:
 
 ```text
 aliases
@@ -496,208 +513,414 @@ comment
 all
 ```
 
-Examples:
+Show the generator's authoritative current field list with:
 
 ```bash
-# Revision-specific aliases only.
-python3 generate-data-from-lpf.py \\
-    ulx3s_v316.lpf \\
-    -o data.py \\
+./generate-data-from-lpf.py ulx3s --list-fields
+```
+
+Examples:
+
+Revision-specific aliases:
+
+```bash
+./generate-data-from-lpf.py ulx3s \
+    boards/ulx3s/constraints/ulx3s_v316.lpf \
     --include aliases
 ```
 
+Useful electrical metadata without the complete raw comment:
+
 ```bash
-# Useful electrical metadata without the raw LPF comment.
-python3 generate-data-from-lpf.py \\
-    ulx3s_v316.lpf \\
-    -o data.py \\
+./generate-data-from-lpf.py ulx3s \
+    boards/ulx3s/constraints/ulx3s_v316.lpf \
     --include aliases,connector,flags,pullmode,io_type,drive,frequency
 ```
 
+Every parsed IOBUF key/value:
+
 ```bash
-# Every parsed IOBUF key/value, including future keys not known today.
-python3 generate-data-from-lpf.py \\
-    ulx3s_v316.lpf \\
-    -o data.py \\
+./generate-data-from-lpf.py ulx3s \
+    boards/ulx3s/constraints/ulx3s_v316.lpf \
     --include iobuf
 ```
 
-A specific arbitrary IOBUF key can also be requested:
+A specific arbitrary IOBUF key:
 
 ```bash
-python3 generate-data-from-lpf.py \\
-    board.lpf \\
-    -o data.py \\
+./generate-data-from-lpf.py ulx3s \
+    boards/ulx3s/constraints/ulx3s_v316.lpf \
     --iobuf-key SLEWRATE
 ```
 
-`--include aliases` combines two sources:
-
-1. recognized aliases in the GP/GN inline comment, including `wifi_gpioN`,
-   `sensor_*`, and `ADC AINn`; and
-2. other active `LOCATE COMP` signal names that use the same FPGA site.
-
+`--include aliases` combines recognized aliases found in the GP/GN inline
+comment with other active `LOCATE COMP` signal names using the same FPGA site.
 Duplicate aliases are emitted only once.
 
-`--include connector` emits labels such as `J1_5+`, `J1_5-`, `J2_35+`, and
-`J2_35-`. When an LPF provides an explicit connector token in the GP/GN
-comment, the generator verifies it against the physical connector template.
+`--include connector` emits connector labels such as `J1_5+`, `J1_5-`,
+`J2_35+`, and `J2_35-`. If the LPF provides an explicit connector token in the
+GP/GN comment, the generator verifies it against the physical connector
+template.
 
-`--include flags` extracts the useful GP/GN comment flags `DIFF`, `PCLK`, and
-`GR_PCLK`.
+`--include flags` extracts useful GP/GN comment flags such as `DIFF`, `PCLK`,
+and `GR_PCLK`.
 
 `--include iobuf` emits every parsed IOBUF `KEY=VALUE` pair. The narrower
-`pullmode`, `io_type`, and `drive` fields can be selected individually.
+`pullmode`, `io_type`, and `drive` fields can be requested individually.
 
 `--include frequency` emits `FREQUENCY PORT` metadata when present.
 
-`--include comment` emits the complete GP/GN inline comment. This can produce
-very wide labels and is mainly useful for auditing or development.
+`--include comment` emits the complete GP/GN inline comment. This can create
+very wide labels and is mainly useful for auditing.
 
-`--include all` enables every field above, including the raw comment.
+`--include all` enables all supported optional fields, including the raw
+comment.
 
-The added label classes are `alias`, `connector`, and `meta`; `styles.css`
-contains their default colors.
+### Vector and scalar ULX3S GPIO definitions
 
-### Vector and scalar GPIO definitions
-
-Some ULX3S LPFs contain both:
+Some ULX3S LPFs contain both vector and scalar forms:
 
 ```text
 gp[0]..gp[27] / gn[0]..gn[27]
+gp0..gp27     / gn0..gn27
 ```
 
-and:
-
-```text
-gp0..gp27 / gn0..gn27
-```
-
-The generator always verifies that the two forms use the same FPGA `SITE`.
+The generator verifies that the two forms use the same FPGA `SITE`.
 
 For aliases and electrical metadata, the forms are not blindly merged.
 `--gpio-form auto` is the default and prefers the complete vector form.
-Choose a form explicitly when needed:
+
+Choose a form explicitly when required:
 
 ```bash
 --gpio-form vector
 --gpio-form scalar
 ```
 
-This matters for files such as `ulx3s_v316.lpf`, where the vector and scalar
-definitions of GN12 have different IOBUF/FREQUENCY metadata. The generator
-prints a warning for such differences. Use `--strict-form-metadata` if those
-differences should be fatal.
+`ulx3s_v316.lpf` currently contains a known GN12 vector/scalar metadata
+difference. The generator reports it as a warning:
 
-### User labels
-
-The example UART labels remain independent of LPF metadata:
-
-```python
-USER_LABELS = {
-    "GP0": [("UART Rx", "comms")],
-    "GP1": [("UART Tx", "comms")],
-}
+```text
+vector: PULLMODE=UP, IO_TYPE=LVCMOS33, DRIVE=4, no FREQUENCY
+scalar: PULLMODE=NONE, IO_TYPE=LVCMOS33, FREQUENCY=50 MHZ
 ```
 
-Suppress them with:
+The warning is expected during the normal test suite. Use
+`--strict-form-metadata` when such differences should be treated as fatal.
+
+### ULX3S user labels
+
+Project/user labels are independent of LPF metadata. The generator can include
+labels such as the example UART annotations for GP0 and GP1.
+
+Suppress user labels with:
 
 ```bash
 --no-user-labels
 ```
 
-### Output format
+Use `--include` for LPF-derived information and the user-label mechanism for
+project-specific semantic labels; do not encode project-only labels into the
+constraint parser.
 
-Generated `data.py` deliberately uses double-quoted strings to match the
-existing repository style. The generator does not use Python `repr()` for
-label strings.
+### Generated Python formatting
+
+Generated `data.py` intentionally uses stable double-quoted strings rather than
+Python `repr()` output. This minimizes noisy diffs when data is regenerated.
+
+## Editing the diagrams
+
+### Change a pin mapping or LPF-derived label
+
+Prefer changing the authoritative board constraint or board-specific generator,
+then regenerate `data.py`.
+
+For ULX3S:
+
+```text
+boards/ulx3s/generator.py
+boards/ulx3s/constraints/*.lpf
+```
+
+For ULX4M-LD:
+
+```text
+boards/ulx4m-ld/generator.py
+boards/ulx4m-ld/constraints/*.lpf
+```
+
+Do not permanently hand-edit an FPGA package site in generated `data.py` unless
+the intent is specifically to change the generated format/template.
+
+### Change label or leader-line placement
+
+Edit the board's layout:
+
+```text
+boards/ulx3s/layout.py
+boards/ulx4m-ld/layout.py
+```
+
+Layout code owns:
+
+- diagram dimensions
+- board-image placement
+- label-group positions
+- leader-line geometry
+- semantic label widths
+- label height and spacing
+- board centering
+- legend placement
+- board-specific calibration coordinates
+
+For ULX4M-LD, keep the measured header endpoint calibration separate from label
+placement. The connector geometry should remain authoritative so moving labels
+does not change which photographed pin a leader line targets.
+
+### Change label widths
+
+ULX3S label widths are selected by semantic type so short labels remain compact
+while aliases and metadata receive more room.
+
+The layout uses width categories such as:
+
+```text
+PIN_NUMBER_LABEL_WIDTH
+GPIO_SIGNAL_LABEL_WIDTH
+FPGA_SITE_LABEL_WIDTH
+POWER_LABEL_WIDTH
+GROUND_LABEL_WIDTH
+USER_LABEL_WIDTH
+ALIAS_LABEL_WIDTH
+CONNECTOR_LABEL_WIDTH
+METADATA_LABEL_WIDTH
+ANALOG_LABEL_WIDTH
+PWM_LABEL_WIDTH
+TOUCH_LABEL_WIDTH
+DEFAULT_LABEL_WIDTH
+```
+
+Physical connector numbers are recognized by numeric content first. Other
+labels select their width from their semantic tag.
+
+If a new label tag is added, assign it an appropriate width or allow it to use
+the default width.
+
+### Change pill appearance
+
+ULX3S pill geometry is parameterized in `boards/ulx3s/layout.py`, including
+settings for corner radius, border color, and border width.
+
+`styles.css` controls shared visual styling such as:
+
+- GP/GN colors
+- differential pair colors
+- FPGA-site colors
+- power and ground
+- aliases
+- connector metadata
+- ULX4M physical-pin/GPIO/active-resource colors
+- leader lines
+- fonts
+- legend styling
+
+Keep board-specific CSS scoped when a class name could otherwise affect both
+boards.
+
+## ULX4M-LD details
+
+### Raspberry Pi header orientation
+
+The ULX4M-LD diagram is drawn against the Waveshare CM4-IO-BASE-B carrier
+photograph. The Raspberry Pi compatible 40-pin header is treated as a vertical
+2x20 connector.
+
+The layout uses measured endpoints for:
+
+```text
+odd pin 1
+odd pin 39
+even pin 2
+even pin 40
+```
+
+The intermediate pin centers are interpolated from those points. This lets
+labels be moved without losing alignment to the actual photographed connector.
+
+### Shared resources
+
+The ULX4M-LD header mapping includes both connector identity and board/design
+sharing information.
+
+Examples include:
+
+- SD-related signals sharing Raspberry Pi header GPIOs
+- FPGA JTAG signals connected to Raspberry Pi header GPIOs
+- Ethernet reference-clock sharing
+- current LPF use of header-connected FPGA sites
+
+These are intentionally distinct label categories. A fixed board connection is
+not the same thing as the active use chosen by one LPF.
+
+### Current LPF usage
+
+The default ULX4M-LD LPF currently uses these header-connected sites:
+
+```text
+pin  5  GPIO3   P17  ddram_a[12]
+pin  7  GPIO4   B15  sd_miso
+pin  8  GPIO14  P2   sd_csn
+pin 10  GPIO15  G1   sd_clk
+pin 13  GPIO27  P1   sd_mosi
+pin 16  GPIO23  N4   uart_rx
+pin 18  GPIO24  N3   uart_tx
+```
+
+The generator derives this layer from the selected LPF rather than hard-coding
+those active signal names into the drawing code.
 
 ## Troubleshooting
 
-### `inotifywait: command not found`
+### `module '<name>' has no attribute 'diagram'`
 
-Install the watcher dependency:
-
-```bash
-sudo apt install inotify-tools
-```
-
-For a one-shot build, you can skip `pinout-update.sh` entirely and invoke
-`pinout.manager` directly.
-
-### `Permission denied` when running `pinout-update.sh`
-
-Either set the executable bit:
-
-```bash
-chmod +x pinout-update.sh
-./pinout-update.sh
-```
-
-or invoke it explicitly with Bash:
-
-```bash
-bash ./pinout-update.sh
-```
-
-### `AttributeError: 'NoneType' object has no attribute 'loader'`
-
-Make sure the export command specifies the Python source filename, including
-the `.py` suffix:
-
-```bash
-python3 -m pinout.manager \
-    --export pinout_ulx3s.py pinout_ulx3s.svg \
-    --overwrite
-```
-
-### Labels appear but the ULX3S board image is missing
-
-Confirm that the source board image exists:
-
-```bash
-ls -lh ulx3s.png
-```
-
-The current `pinout_ulx3s.py` should import `Image` from `pinout.core` and use
-the local image with embedding enabled:
+`pinout.manager` expects a module-level object named:
 
 ```python
-from pinout.core import Group, Image
-
-graphic.add(Image("ulx3s.png", width=1372, height=742, embed=True))
+diagram
 ```
 
-After correcting the source, regenerate the SVG.
+Each board `layout.py` must expose that object.
 
-You can confirm that an embedded PNG is present in the generated SVG with:
+### PNG export fails while SVG succeeds
+
+The PNG/PDF/PS conversion path is stricter about some CSS syntax than modern
+browsers. In particular, use conventional comma-separated RGB values:
+
+```css
+rgb(34, 173, 0)
+```
+
+not:
+
+```css
+rgb(34 173 0)
+```
+
+The test script checks for the unsupported space-separated form.
+
+### ULX3S reports the GN12 metadata warning
+
+The v3.1.6/v3.1.7 LPF has different vector/scalar metadata for GN12. The normal
+generator reports this as a warning and the CI test allows it.
+
+Use:
 
 ```bash
-grep -o 'data:image/png;base64' pinout_ulx3s.svg | head
+--strict-form-metadata
 ```
 
-### Browser still shows an older diagram
+if you want the discrepancy to fail generation.
 
-The browser may have the previous local SVG cached. Reload the file or close
-and reopen the browser tab after regenerating it.
+### `data.py` reproducibility test fails
+
+The test regenerates the committed board data using the repository's default
+generation options.
+
+For ULX3S, the committed default includes aliases:
+
+```bash
+./generate-data-from-lpf.py ulx3s --include aliases
+```
+
+If the committed data was generated with different options, the test prints a
+diff so the mismatch is visible.
+
+### Labels render but the board image is missing
+
+Confirm the board image exists at the expected board-specific path:
+
+```bash
+ls -lh boards/ulx3s/ulx3s.png
+ls -lh boards/ulx4m-ld/cm4-io-base-b-3_3.jpg
+```
+
+Both layouts embed the board image into the generated SVG.
+
+### Browser still shows an older SVG
+
+A browser may cache a local SVG. Reload the file or close and reopen the tab
+after regeneration.
 
 ## Validation checklist
 
 Before committing pinout changes:
 
-1. Generate `pinout_ulx3s.svg` without Python exceptions.
-2. Open the SVG and confirm the ULX3S board image is visible.
-3. Confirm J1 and J2 labels align with the intended physical header holes.
-4. Confirm every J1 physical pin 1 through 40 appears exactly once.
-5. Confirm every J2 physical pin 1 through 40 appears exactly once.
-6. Confirm GP0..GP27 and GN0..GN27 appear exactly once.
+1. Run `./scripts/test-pinout.sh` and confirm it reaches
+   `Pinout script tests passed.`
+2. Open the generated ULX3S SVG/PNG and confirm the board image is visible.
+3. Confirm ULX3S J1/J2 labels align with the intended physical connector holes.
+4. Confirm ULX4M-LD labels and leader lines align with the photographed 40-pin
+   connector.
+5. Confirm every ULX3S J1 and J2 physical pin 1..40 appears exactly once.
+6. Confirm GP0..GP27 and GN0..GN27 appear exactly once for ULX3S.
 7. Verify FPGA package sites against the authoritative constraint file.
-8. Verify power and ground pins against the schematic/manual for the intended board revision.
-9. Check `git diff` for unintended generated or formatting changes.
+8. Verify power and ground against the schematic/manual for the intended board
+   revision.
+9. For ULX4M-LD, distinguish fixed header wiring from current LPF use and
+   shared-resource notes.
+10. Check `git diff` and `git status --short` for unintended source or generated
+    changes.
+11. In GitHub Actions, download the generated artifact and inspect the SVG/PNG
+    files for both boards.
+
+Automated checks intentionally complement, rather than replace, visual and
+schematic verification.
+
+## Migration from the old flat ULX3S layout
+
+The multi-board refactor moved the original ULX3S responsibilities as follows:
+
+```text
+data.py                   -> boards/ulx3s/data.py
+pinout_ulx3s.py           -> boards/ulx3s/layout.py
+constraints/*             -> boards/ulx3s/constraints/*
+ulx3s.png                 -> boards/ulx3s/ulx3s.png
+generate-data-from-lpf.py -> shared dispatcher + boards/ulx3s/generator.py
+styles.css                -> shared stylesheet for all boards
+```
+
+`custom_components.py` is no longer required by the normal generation path.
+The current ULX3S layout uses the local board image directly, and the ULX4M
+layout uses the shared image-normalization helper.
+
+The old `pinout-update.sh` watcher is also no longer required. One-shot
+generation and validation are now board-neutral through `generate-pinout.py`
+and `scripts/test-pinout.sh`.
+
+## Optional legacy helper utilities
+
+If the repository still contains the older C# helper projects, they are
+separate from the normal Python generation workflow:
+
+- `fpga2pinout/` extracts `LOCATE COMP ... SITE ...` mappings from an FPGA
+  constraint file.
+- `svg2png/` renders SVG to PNG using SVG.NET.
+- `png2base64/` is a legacy Base64 helper.
+
+They are not required to generate the current ULX3S or ULX4M-LD pinouts.
 
 ## References
 
+ULX3S:
+
 - [ULX3S FPGA constraint file - ulx3s_v20.lpf](https://github.com/emard/ulx3s/blob/master/doc/constraints/ulx3s_v20.lpf)
 - [ULX3S manual](https://github.com/emard/ulx3s/blob/master/doc/MANUAL.md)
-- [pinout documentation](https://pinout.readthedocs.io/)
 - [ULX3S project](https://radiona.org/ulx3s/)
+
+Pinout tooling:
+
+- [pinout documentation](https://pinout.readthedocs.io/)
+
+The checked-in LPF files and board-specific mapping code remain the immediate
+inputs used by this repository. External references are useful for independent
+verification of connector and board details.

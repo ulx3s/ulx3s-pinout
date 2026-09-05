@@ -1,16 +1,12 @@
-﻿################################################################################
+################################################################################
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/.vs
-/__pycache__
-/archive
-/fpga2pinout/fpga2pinout/bin/Debug/netcoreapp3.1
-/fpga2pinout/fpga2pinout/obj
-/png2base64/bin/Debug/netcoreapp3.1
-/png2base64/obj
-/fpga2pinout/.vs/fpga2pinout
-/fpga2pinout/bin/Debug/netcoreapp3.1
-/fpga2pinout/obj
-/svg2png/bin/Debug/netcoreapp3.1
-/svg2png/obj
+/**/.vs
+/**/__pycache__
+/**/netcoreapp3.1
+/**/obj
+/**/bin
+/**/build
+/**/archive
+/**/*.bak

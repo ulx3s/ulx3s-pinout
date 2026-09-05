@@ -55,25 +55,25 @@ mechanical information came from the FPGA constraint file.
 Generate the normal `data.py`:
 
 ```bash
-python3 generate-data-from-lpf.py \
+./generate-data-from-lpf.py ulx3s \
     /path/to/ulx3s_v20.lpf \
-    -o data.py
+    -o boards/ulx3s/data.py
 ```
 
 For v3.1.4:
 
 ```bash
-python3 generate-data-from-lpf.py \
+./generate-data-from-lpf.py ulx3s \
     /path/to/ulx3s_v314.lpf \
-    -o data.py
+    -o boards/ulx3s/data.py
 ```
 
 For v3.1.6/v3.1.7:
 
 ```bash
-python3 generate-data-from-lpf.py \
+./generate-data-from-lpf.py ulx3s \
     /path/to/ulx3s_v316.lpf \
-    -o data.py
+    -o boards/ulx3s/data.py
 ```
 
 The generator accepts either vector names (`gp[0]`) or scalar aliases (`gp0`).
@@ -85,9 +85,9 @@ The generator also fails if any GP0..GP27 or GN0..GN27 mapping is missing.
 To omit the example UART user labels:
 
 ```bash
-python3 generate-data-from-lpf.py \
+./generate-data-from-lpf.py ulx3s \
     /path/to/ulx3s_v20.lpf \
-    -o data.py \
+    -o boards/ulx3s/data.py \
     --no-user-labels
 ```
 
@@ -103,16 +103,16 @@ changing the base GP/GN/site pinout.
 For example:
 
 ```bash
-python3 generate-data-from-lpf.py ulx3s_v20.lpf \\
-    -o data_v20_meta.py \\
+./generate-data-from-lpf.py ulx3s ./boards/ulx3s/constraints/ulx3s_v20.lpf \
+    -o data_v20_meta.py \
     --include aliases,connector,flags,pullmode,io_type,drive,frequency
 
-python3 generate-data-from-lpf.py ulx3s_v314.lpf \\
-    -o data_v314_meta.py \\
+./generate-data-from-lpf.py ulx3s ./boards/ulx3s/constraints/ulx3s_v314.lpf \
+    -o data_v314_meta.py \
     --include aliases,connector,flags,pullmode,io_type,drive,frequency
 
-python3 generate-data-from-lpf.py ulx3s_v316.lpf \\
-    -o data_v316_meta.py \\
+./generate-data-from-lpf.py ulx3s boards/ulx3s/constraints/ulx3s_v316.lpf \
+    -o data_v316_meta.py \
     --include aliases,connector,flags,pullmode,io_type,drive,frequency
 ```
 

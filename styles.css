@@ -19,63 +19,63 @@ text {
     text-anchor: middle;
 }
 .gpsingle .pinlabel__body {
-    fill: rgb(34 173 0);
+    fill: rgb(34, 173, 0);
 }
 
 .gpsingle .pinlabel__leader {
-    stroke: rgb(34 173 0);
+    stroke: rgb(34, 173, 0);
 }
 
 .gpsingle .swatch__body {
-    fill: rgb(34 173 0);
+    fill: rgb(34, 173, 0);
 }
 
 .gnsingle .pinlabel__body {
-    fill: rgb(0 140 173);
+    fill: rgb(0, 140, 173);
 }
 
 .gnsingle .pinlabel__leader {
-    stroke: rgb(0 140 173);
+    stroke: rgb(0, 140, 173);
 }
 
 .gnsingle .swatch__body {
-    fill: rgb(0 140 173);
+    fill: rgb(0, 140, 173);
 }
 
 .gpdiff .pinlabel__body {
-    fill: rgb(0 120 0);
+    fill: rgb(0, 120, 0);
 }
 
 .gpdiff .pinlabel__leader {
-    stroke: rgb(0 120 0);
+    stroke: rgb(0, 120, 0);
 }
 
 .gpdiff .swatch__body {
-    fill: rgb(0 120 0);
+    fill: rgb(0, 120, 0);
 }
 
 .gndiff .pinlabel__body {
-    fill: rgb(0 90 160);
+    fill: rgb(0, 90, 160);
 }
 
 .gndiff .pinlabel__leader {
-    stroke: rgb(0 90 160);
+    stroke: rgb(0, 90, 160);
 }
 
 .gndiff .swatch__body {
-    fill: rgb(0 90 160);
+    fill: rgb(0, 90, 160);
 }
 
 .site .pinlabel__body {
-    fill: rgb(70 70 70);
+    fill: rgb(70, 70, 70);
 }
 
 .site .pinlabel__leader {
-    stroke: rgb(70 70 70);
+    stroke: rgb(70, 70, 70);
 }
 
 .site .swatch__body {
-    fill: rgb(70 70 70);
+    fill: rgb(70, 70, 70);
 }
 
 .pwr .pinlabel__body{
@@ -203,4 +203,89 @@ text {
 
 .meta .swatch__body {
     fill: rgb(95, 95, 95);
+}
+
+/* ULX4M-LD CM4 carrier diagram. Keep these rules scoped so the shared
+ * stylesheet does not alter the existing ULX3S pinout component colors. */
+.ulx4m text {
+    font-family: Verdana, Arial, sans-serif;
+}
+
+.ulx4m .background {
+    fill: #ffffff;
+}
+
+.ulx4m .title {
+    fill: #202020;
+    font-size: 25px;
+    font-weight: bold;
+}
+
+.ulx4m .subtitle {
+    fill: #444;
+    font-size: 12px;
+}
+
+.ulx4m .board-frame {
+    fill: #fff;
+    stroke: #777;
+    stroke-width: 2;
+}
+
+.ulx4m .leader {
+    fill: none;
+    opacity: 0.95;
+    stroke: #476f94;
+    stroke-linecap: round;
+    stroke-width: 2.2;
+}
+
+.ulx4m .leader-dot {
+    fill: #fff;
+    stroke: #333;
+    stroke-width: 1.4;
+}
+
+.ulx4m .pill rect {
+    rx: 5;
+    ry: 5;
+    stroke: #363636;
+    stroke-width: 1.2;
+}
+
+.ulx4m .pill text {
+    fill: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    dominant-baseline: middle;
+    text-anchor: middle;
+}
+
+.ulx4m .physical rect { fill: #405a73; }
+.ulx4m .gpio rect { fill: #a0851a; }
+.ulx4m .site rect { fill: #555; }
+.ulx4m .alias rect { fill: #177d8f; }
+.ulx4m .pwr rect { fill: #ad0000; }
+.ulx4m .gnd rect { fill: #111; }
+.ulx4m .board-note rect { fill: #b36013; }
+.ulx4m .active rect { fill: #a3409e; }
+.ulx4m .active-critical rect { fill: #bd2f2f; }
+
+.ulx4m .legend-frame {
+    fill: #fff;
+    fill-opacity: 0.96;
+    stroke: #888;
+    stroke-width: 1.2;
+}
+
+.ulx4m .legend-label {
+    fill: #333;
+    font-size: 13px;
+    dominant-baseline: middle;
+}
+
+.ulx4m .warning {
+    fill: #9b1c1c;
+    font-size: 12px;
+    font-weight: bold;
 }

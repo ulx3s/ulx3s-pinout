@@ -1,0 +1,81 @@
+name: Test pinout scripts
+
+on:
+  push:
+    paths:
+      - ".github/workflows/test-pinout.yml"
+      - "scripts/test-pinout.sh"
+      - "generate-data-from-lpf.py"
+      - "generate-pinout.py"
+      - "pinout_common.py"
+      - "styles.css"
+      - "boards/**"
+  pull_request:
+    paths:
+      - ".github/workflows/test-pinout.yml"
+      - "scripts/test-pinout.sh"
+      - "generate-data-from-lpf.py"
+      - "generate-pinout.py"
+      - "pinout_common.py"
+      - "styles.css"
+      - "boards/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.10"
+          - "3.13"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --upgrade pinout cairosvg pillow
+          python -m pip check
+
+
+      - name: Test pinout scripts
+        env:
+          PINOUT_TEST_BUILD_DIR: build/pinout-tests
+        run: ./scripts/test-pinout.sh
+
+      - name: List generated test outputs
+        if: always()
+        run: |
+          if [ -d build/pinout-tests ]; then
+            find build/pinout-tests -type f -print | sort
+          else
+            echo "No build/pinout-tests directory was generated."
+          fi
+
+      - name: Confirm source tree was not modified
+        run: git diff --exit-code
+
+      - name: Upload generated test outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pinout-generated-python-${{ matrix.python-version }}
+          path: |
+            build/pinout-tests/rendered/
+            build/pinout-tests/default-data/
+            build/pinout-tests/constraint-sweep/
+          if-no-files-found: error
+          retention-days: 7

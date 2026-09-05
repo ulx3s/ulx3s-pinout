@@ -1,39 +1,39 @@
-###########################################
-#
-# ULX3S based on example script to build a
-# pinout diagram. Includes basic
-# features and convenience classes.
-#
-###########################################
+#!/usr/bin/env python3
 
-from pinout.core import Group, Image, Raw
+"""ULX3S board layout for the shared pinout generator."""
+
+import sys
+from pathlib import Path
+
 from pinout.components.layout import Diagram, Panel
-from pinout.components.pinlabel import PinLabelGroup, PinLabel
-from pinout.components.text import TextBlock
-from pinout.components import leaderline as lline
 from pinout.components.legend import Legend
+from pinout.components.pinlabel import PinLabelGroup
+from pinout.core import Group, Image, Raw
 
-from custom_components import PNG_from_web
 
-# Import data for the diagram
-import data
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
-# Layout settings
+from pinout_common import load_board_data, stylesheet_path  # noqa: E402
+
+
+data = load_board_data(__file__)
+BOARD_DIR = Path(__file__).resolve().parent
+BOARD_IMAGE = BOARD_DIR / "ulx3s.png"
+
+# Layout settings.
 #
 # EXTRA_LABEL_SPACE_PER_SIDE is the main setting to change when user labels
-# extend beyond the left or right side of the frame.  Increasing it adds the
+# extend beyond the left or right side of the frame. Increasing it adds the
 # same amount of space to both sides while keeping the ULX3S centered.
 #
-# BOARD_X_ADJUST can be used for an asymmetric layout.  Positive values move
+# BOARD_X_ADJUST can be used for an asymmetric layout. Positive values move
 # the board and all pin labels right; negative values move them left.
 EXTRA_LABEL_SPACE_PER_SIDE = 100
 BOARD_X_ADJUST = 0
 
 # Pin-label body dimensions.
-#
-# Each semantic label type has an independent width.  Physical connector pin
-# numbers are detected by numeric content first, because their CSS tag may be
-# "gpio", "pwr", or "gnd" depending on the pin function.
 PIN_LABEL_HEIGHT = 20
 PIN_NUMBER_LABEL_WIDTH = 40
 GPIO_SIGNAL_LABEL_WIDTH = 58
@@ -50,11 +50,6 @@ TOUCH_LABEL_WIDTH = 76
 DEFAULT_LABEL_WIDTH = 96
 
 # Pin-label pill appearance.
-#
-# The upstream pinout default corner radius is 3.  Use a slightly larger
-# radius here for a softer pill shape.  Border styling is injected into the
-# generated SVG from these variables so all pill appearance settings remain
-# together in this file.
 PIN_LABEL_CORNER_RADIUS = 5
 PIN_LABEL_BORDER_COLOR = "rgb(54, 54, 54)"
 PIN_LABEL_BORDER_WIDTH = 1.5
@@ -103,7 +98,7 @@ def label_width(content, tag):
 
 
 def pin_label_border_style():
-    """Return an inline SVG stylesheet for the configured pill border."""
+    """Return inline SVG CSS for the configured ULX3S pill border."""
     return (
         '<style type="text/css">\n'
         '.pinlabel__body {\n'
@@ -116,12 +111,11 @@ def pin_label_border_style():
 
 
 def labels_with_dimensions(rows):
-    """Add per-label body dimensions without changing data.py."""
+    """Add per-label body dimensions without modifying generated data.py."""
     result = []
 
     for row in rows:
         output_row = []
-
         for label in row:
             content, tag, *args = label
             attrs = dict(args[0]) if args else {}
@@ -139,17 +133,18 @@ def labels_with_dimensions(rows):
     return result
 
 
-# Create a new diagram
+if not BOARD_IMAGE.is_file():
+    raise FileNotFoundError(
+        f"ULX3S board image not found: {BOARD_IMAGE}. "
+        "Move the existing repository ulx3s.png to boards/ulx3s/ulx3s.png."
+    )
+
+# pinout.manager imports this module and looks for a module-level object named
+# diagram. Keep that interface so direct pinout.manager export still works.
 diagram = Diagram(DIAGRAM_WIDTH, DIAGRAM_HEIGHT, "diagram")
-
-# Add a stylesheet
-diagram.add_stylesheet("styles.css", True)
-
-# Add variable-driven pin-label border styling after styles.css so these
-# settings override any generic .pinlabel__body border declarations.
+diagram.add_stylesheet(str(stylesheet_path()), True)
 diagram.add(Raw(pin_label_border_style()))
 
-# Create a layout
 content = diagram.add(
     Panel(
         width=CONTENT_WIDTH,
@@ -176,13 +171,10 @@ panel_info = content.add(
     )
 )
 
-# Create a group to hold the pinout-diagram components.
 graphic = panel_main.add(Group(GRAPHIC_X, GRAPHIC_Y))
+graphic.add(Image(str(BOARD_IMAGE), width=1372, height=742, embed=True))
 
-# Add and embed an image
-graphic.add(Image("ulx3s.png", width=1372, height=742, embed=True))
-
-# Create pinlabels on J1.
+# J1.
 graphic.add(
     PinLabelGroup(
         x=280,
@@ -206,7 +198,7 @@ graphic.add(
     )
 )
 
-# Create pinlabels on J2.  J2 is physically mirrored relative to J1.
+# J2 is physically mirrored relative to J1.
 graphic.add(
     PinLabelGroup(
         x=1068,
@@ -229,45 +221,8 @@ graphic.add(
         labels=labels_with_dimensions(data.right_header_even),
     )
 )
-#
-## Create pinlabels on the lower header
-#graphic.add(
-#    PinLabelGroup(
-#        x=65,
-#        y=244,
-#        scale=(-1, 1),
-#        pin_pitch=(30, 0),
-#        label_start=(110, 30),
-#        label_pitch=(0, 30),
-#        labels=data.lower_header,
-#        leaderline=lline.Curved(direction="vh"),
-#    )
-#)
-#
-## Create a title and a text-block
-#title_block = panel_info.add(
-#    TextBlock(
-#        data.title,
-#        x=20,
-#        y=30,
-#        line_height=18,
-#        tag="panel title_block",
-#    )
-#)
-#panel_info.add(
-#    TextBlock(
-#        data.description,
-#        x=20,
-#        y=60,
-#        width=title_block.width,
-#        height=panel_info.height - title_block.height,
-#        line_height=18,
-#        tag="panel text_block",
-#    )
-#)
-#
-# Create a legend
-legend = panel_info.add(
+
+panel_info.add(
     Legend(
         data.legend,
         x=LEGEND_X,
@@ -275,6 +230,3 @@ legend = panel_info.add(
         max_height=LEGEND_MAX_HEIGHT,
     )
 )
-#
-# Export the diagram via commandline:
-# >>> python3 -m pinout.manager --export pinout_ulx3s.py pinout_ulx3s.svg --overwrite
